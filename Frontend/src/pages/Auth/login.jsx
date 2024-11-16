@@ -44,7 +44,7 @@ import { useState } from "react";
           <div className="flex flex-col gap-8 items-center justify-center bg-gradient-to-br from-gray-800 to-teal-700 text-white p-10">
             <div className="flex flex-col items-center">
               <h1 className='text-5xl font-bold md:text-6xl'>Welcome</h1>
-              <img src={demo} alt="demo emoji" className='h-[100px] mt-4' />
+             
             </div>
             <p className='font-medium text-lg text-center'>
           I am your personal computer lab astitant.

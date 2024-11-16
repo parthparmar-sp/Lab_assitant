@@ -5,14 +5,13 @@ import { toast } from "sonner";
 import { SIGNUP_URL } from "@/utils/constatns";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-
-//const SIGNUP_URL = "http://localhost:3000/api/auth/signup"; // Your signup URL
+import { useNavigate } from "react-router-dom"; 
 
 function Register() {
   const [Email, setEmail] = useState("");
   const [Password, setPassword] = useState("");
   const [ConfirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);  // Track loading state
   const navigate = useNavigate(); // Create navigate function
 
   const handleRegister = async (event) => {
@@ -36,17 +35,15 @@ function Register() {
     };
 
     try {
-      // Make the POST request
+      setLoading(true);  // Set loading to true when request is being processed
       const response = await axios.post(SIGNUP_URL, data, { withCredentials: true });
 
       // Check for successful response
-      if (response.status === 201) { // Check for 201 status code
+      if (response.status === 201) { 
         toast.success("Registration successful.");
-        //alert("Registration successful!"); // Alert for successful registration
         navigate('/auth'); // Navigate to the login page
       }
     } catch (error) {
-      // Log the error and display a message
       console.error("Error during registration:", error.response ? error.response.data : error.message);
       
       // Display a user-friendly error message
@@ -55,6 +52,8 @@ function Register() {
       } else {
         toast.error("An unexpected error occurred. Please try again later.");
       }
+    } finally {
+      setLoading(false);  // Reset loading state after request completion
     }
   };
 
@@ -95,7 +94,13 @@ function Register() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
-            <Button type="submit" className='w-full bg-teal-500 text-white py-2 rounded-md hover:bg-teal-600'>Register</Button>
+            <Button 
+              type="submit" 
+              className='w-full bg-teal-500 text-white py-2 rounded-md hover:bg-teal-600' 
+              disabled={loading}  // Disable button while loading
+            >
+              {loading ? "Registering..." : "Register"} {/* Display loading text */}
+            </Button>
           </form>
         </div>
       </section>

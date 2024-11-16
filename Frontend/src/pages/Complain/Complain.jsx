@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react';
 
 function Complain() {
   // Generate options for Lab Numbers (Lab 1 to Lab 50)
@@ -6,6 +6,13 @@ function Complain() {
 
   // Generate options for Computer Numbers (Computer 1 to Computer 50)
   const computerOptions = Array.from({ length: 50 }, (_, index) => `Computer ${index + 1}`);
+
+  // State to handle selected lab and computer
+  const [selectedLab, setSelectedLab] = useState('');
+  const [selectedComputer, setSelectedComputer] = useState('');
+
+  // Dynamic button color based on selections
+  const buttonColor = selectedLab && selectedComputer ? 'bg-green-500' : 'bg-blue-800';
 
   return (
     <div className='h-[100vh] w-full flex items-center justify-center bg-gradient-to-r from-gray-900 to-teal-800'>
@@ -17,7 +24,8 @@ function Complain() {
           {/* Dropdown for Lab Number */}
           <select
             className="w-full p-4 text-gray-700 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-blue-800 transition duration-200"
-            defaultValue=""
+            value={selectedLab}
+            onChange={(e) => setSelectedLab(e.target.value)}
           >
             <option value="" disabled>Select Lab Number</option>
             {labOptions.map((lab, index) => (
@@ -28,7 +36,8 @@ function Complain() {
           {/* Dropdown for Computer Number */}
           <select
             className="w-full p-4 text-gray-700 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-blue-800 transition duration-200"
-            defaultValue=""
+            value={selectedComputer}
+            onChange={(e) => setSelectedComputer(e.target.value)}
           >
             <option value="" disabled>Select Computer Number</option>
             {computerOptions.map((computer, index) => (
@@ -44,12 +53,16 @@ function Complain() {
           />
         </div>
 
-        <button className="w-full py-3 bg-blue-800 text-white font-semibold rounded-2xl hover:bg-blue-900 transition duration-300">
+        {/* Submit Button with dynamic color */}
+        <button 
+          className={`w-full py-3 ${buttonColor} text-white font-semibold rounded-2xl hover:bg-blue-900 transition duration-300`} 
+          disabled={!selectedLab || !selectedComputer}
+        >
           Submit Complaint
         </button>
       </div>
     </div>
-  )
+  );
 }
 
-export default Complain
+export default Complain;
