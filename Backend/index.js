@@ -28,6 +28,7 @@ const port = 3000;
 // app.use("/api/v1/student", StudentRoutes);
  
 app.use('/api/auth',StudentRoutes)
+app.use('/api/admin',AdminRoutes)
 
 
 app.listen(port, () => {

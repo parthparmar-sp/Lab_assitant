@@ -4,8 +4,8 @@ function Complain() {
   // Generate options for Lab Numbers (Lab 1 to Lab 50)
   const labOptions = Array.from({ length: 2 }, (_, index) => `Lab ${index + 1}`);
 
-  // Generate options for Computer Numbers (Computer 1 to Computer 50)
-  const computerOptions = Array.from({ length: 50 }, (_, index) => `Computer ${index + 1}`);
+  // Generate options for Computer Numbers (1 to 1000)
+  const computerNumbers = Array.from({ length: 1000 }, (_, index) => index + 1);
 
   // State to handle selected lab and computer
   const [selectedLab, setSelectedLab] = useState('');
@@ -40,8 +40,8 @@ function Complain() {
             onChange={(e) => setSelectedComputer(e.target.value)}
           >
             <option value="" disabled>Select Computer Number</option>
-            {computerOptions.map((computer, index) => (
-              <option key={index} value={computer}>{computer}</option>
+            {computerNumbers.map((number) => (
+              <option key={number} value={number}>{number}</option>
             ))}
           </select>
 

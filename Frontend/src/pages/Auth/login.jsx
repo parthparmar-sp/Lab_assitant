@@ -4,7 +4,7 @@ import demo from '@/assets/victory.svg'
 import { Input } from '@/components/ui/input'
 import { toast } from "sonner";
 import axios from "axios";
-import { LOGIN_ROUTES } from "@/utils/constatns";
+import { ADMIN_PAGE, LOGIN_ROUTES } from "@/utils/constatns";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -27,9 +27,29 @@ import { useState } from "react";
 
         if(response.status===200){
           toast.success("Login Successfull.")
-          navigate("/")
+          navigate("/adminPage")
         }
 
+      } catch (error) {
+        console.log(error);
+        
+      }
+    }
+
+
+    const handleAdminLogin=async()=>{
+      if(!Email || !Password){
+        toast.error("Entre all fields.");
+      }
+
+      try {
+        const data = { email: Email.trim(), password: Password.trim() };
+        const response= await axios.post(ADMIN_PAGE,data,{withCredentials:true, headers: { "Content-Type": "application/json" },});
+
+        if(response.status===200){
+          toast.success("Login Successfull.")
+          navigate("/")
+        }
       } catch (error) {
         console.log(error);
         
@@ -67,7 +87,7 @@ import { useState } from "react";
               <TabsContent value='admin_login' className="space-y-4 mt-4">
                 <Input placeholder='Enter Your Email' className="rounded-2xl p-4 border border-gray-300 focus:border-blue-800 focus:ring-2 focus:ring-blue-800 transition-all duration-300" />
                 <Input placeholder="Enter Your Password" type="password" className='rounded-2xl p-4 border border-gray-300 focus:border-blue-800 focus:ring-2 focus:ring-blue-800 transition-all duration-300' />
-                <button className="w-full mt-4 p-4 bg-blue-800 text-white rounded-2xl font-semibold hover:bg-blue-900 transition-all duration-300">Admin Login</button>
+                <button className="w-full mt-4 p-4 bg-blue-800 text-white rounded-2xl font-semibold hover:bg-blue-900 transition-all duration-300" onClick={handleAdminLogin}>Admin Login</button>
               </TabsContent>
             </Tabs>
           </div>

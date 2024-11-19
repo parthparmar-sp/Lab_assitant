@@ -1,128 +1,105 @@
 const Admin = require("../Models/Admin");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const crypto = require('crypto');
 
-const register = async (req, res) => {
-  try {
-    // console.log(req.body);
-    const admn = await Admin.create(req.body);
-    res.json(admn);
-  } catch (error) {
-    throw new Error(error);
-  }
-  //   try {
-  //     const { fullname, email, password } = req.body;
+// Encryption key and algorithm (keep this key secure)
+const ENCRYPTION_KEY = crypto.randomBytes(32); // Use secure storage like environment variables
+const IV_LENGTH = 16;
 
-  //     if (!fullname || !email || !password) {
-  //       return res.status(400).json({
-  //         message: "something missing",
-  //         success: false,
-  //       });
-  //     }
-  //     const admin = await Admin.findOne({ email });
-  //     if (admin) {
-  //       return res.status(400).json({
-  //         message: "user already exists",
-  //         success: false,
-  //       });
-  //     }
-  //     const hashedPassword = await bcrypt.hash(password, 10);
-  //     await Admin.create({
-  //       fullname,
-  //       email,
-  //       password: hashedPassword,
-  //     });
-  //     return res.status(201).json({
-  //       message: "Account Created successfully",
-  //       success: true,
-  //     });
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-};
+// Fixed admin credentials
+const FIXED_ADMIN_EMAIL = "admin@example.com";
+const FIXED_ADMIN_PASSWORD = encrypt("admin"); // Encrypt the fixed password
 
-//  const login = async (req, res) => {
-//     try {
-//       const { email, password } = req.body;
+// Helper function to encrypt data
+function encrypt(text) {
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const cipher = crypto.createCipheriv('aes-256-cbc', ENCRYPTION_KEY, iv);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return `${iv.toString('hex')}:${encrypted}`;
+}
 
-//       if (!email || !password) {
-//         return res.status(400).json({
-//           error: "something missing",
-//           success: false,
-//         });
-//       }
-//       let admin = await Admin.findOne({ email });
+// Helper function to decrypt data
+function decrypt(text) {
+  const [iv, encrypted] = text.split(':');
+  const decipher = crypto.createDecipheriv('aes-256-cbc', ENCRYPTION_KEY, Buffer.from(iv, 'hex'));
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+}
 
-//       if (!admin) {
-//         return res.status(400).json({
-//           error: "Incorrect email or password",
-//           success: false,
-//         });
-//       }
-//       const isPasswordmatch = await bcrypt.compare(password, Admin.password);
-//       if (!isPasswordmatch) {
-//         return res.status(400).json({
-//           error: "Incorrect email or password",
-//           success: false,
-//         });
-//       }
-
-//       const tokenData = {
-//         adminId: Admin._id,
-//       };
-//       const token = await jwt.sign(tokenData, process.env.SECRET_KEY, {
-//         expiresIn: "1d",
-//       });
-//       admin = {
-//         _id: Admin._id,
-//         name: Admin.fullname,
-//         email: Admin.email,
-
-//       };
-//       return res.status(200)
-//         .cookie("token", token, {
-//           maxAge: 1 * 24 * 60 * 60 * 1000,
-//           httpOnly: true,
-//           sameSite: "strict",
-//         })
-//         .json({
-//           message: `Welcome Back ${Admin.name}`,
-//           Admin,
-//           success: true,
-//         });
-//     } catch (error) {
-//       console.log(error);
-//     }
-//   };
 const login = async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const findAdmin = await Admin.findOne({ email: email });
-        if (!findAdmin) {
-            return res.status(404).json({
-                message: "Admin not found",
-                success: false,
-            });
-        }
+  const { email, password } = req.body;
 
-        // Directly compare the provided password with the password in the database
-        if (password !== findAdmin.password) {
-            return res.status(400).json({
-                message: "Wrong password",
-                success: false,
-            });
-        }
-
-        // If password is correct, send a welcome message
-        return res.status(200).json({
-            message: `Welcome Back ${findAdmin.fullname}`,
-            success: true,
-        });
-    } catch (error) {
-        throw new Error(error);
+  try {
+    // Check for fixed admin credentials
+    if (email === FIXED_ADMIN_EMAIL && password === decrypt(FIXED_ADMIN_PASSWORD)) {
+      return res.status(200).json({
+        message: `Welcome Back Admin`,
+        success: true,
+        isAdmin: true,
+      });
     }
+
+    // Check for dynamic admin credentials
+    const findAdmin = await Admin.findOne({ email });
+    if (!findAdmin) {
+      return res.status(404).json({
+        message: "Admin not found",
+        success: false,
+      });
+    }
+
+    // Validate password
+    const isPasswordMatch = await bcrypt.compare(password, findAdmin.password);
+    if (!isPasswordMatch) {
+      return res.status(400).json({
+        message: "Wrong password",
+        success: false,
+      });
+    }
+
+    // Generate a token for the dynamic admin
+    const token = jwt.sign({ adminId: findAdmin._id }, process.env.SECRET_KEY, {
+      expiresIn: "1d",
+    });
+
+    return res.status(200)
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 24 * 60 * 60 * 1000,
+        path: "/",
+      })
+      .json({
+        message: `Welcome Back ${findAdmin.fullname}`,
+        success: true,
+      });
+  } catch (error) {
+    return res.status(500).json({
+      message: "An error occurred",
+      error: error.message,
+      success: false,
+    });
+  }
 };
+
+const adminPage = async (req, res) => {
+  try {
+    res.status(200).json({
+      message: "Admin Page Accessed Successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to access admin page",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
-  register,
   login,
+  adminPage,
 };

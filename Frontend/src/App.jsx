@@ -13,7 +13,8 @@ function App() {
         <Route path="/header" element={<Index />} /> {/* Correct lowercase path */}
         <Route path="/register" element={<Register />} />
         <Route path="/auth" element={<Auth />} /> 
-        <Route path='/complain' element={<Complain/>}></Route>
+        <Route path='/complain' element={<Complain/>}/>
+        <Route path='/adminPage' element={<Complain/>}/>
       </Routes>
     </BrowserRouter>
   )
